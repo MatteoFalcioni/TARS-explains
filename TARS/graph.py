@@ -3,12 +3,19 @@ from typing_extensions import Annotated, Literal
 from state import TARSState
 from langgraph.prebuilt import create_react_agent, InjectedState
 from langchain_openai import ChatOpenAI
-from prompts import TARS_PROMPT
-from tools import write_equations, set_humor, get_humor
+from langchain_google_genai import ChatGoogleGenerativeAI
 from langgraph.graph import StateGraph, START
+from langgraph.checkpoint.memory import InMemorySaver
+from dotenv import load_dotenv
 
+from prompt import TARS_PROMPT
+from tools import write_equations, set_humor, get_humor
 
-tars_llm = ChatOpenAI("gpt:4o", temperature=0.5)
+load_dotenv()
+
+checkpointer = InMemorySaver()
+
+tars_llm = ChatGoogleGenerativeAI(model="gemini-2.5-pro")
 
 TARS_agent = create_react_agent(
         model=tars_llm,
@@ -29,5 +36,5 @@ def make_graph():
     builder = StateGraph(TARSState)
     builder.add_node("TARS_agent", TARS_node)
     builder.add_edge(START, "TARS_agent")
-    return builder.compile()    #checkpointer=checkpointer add short term memory
+    return builder.compile(checkpointer=checkpointer) 
     
