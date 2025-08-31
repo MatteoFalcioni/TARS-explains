@@ -4,6 +4,7 @@ from state import TARSState
 from langgraph.prebuilt import create_react_agent, InjectedState
 from langchain_openai import ChatOpenAI
 from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_anthropic import ChatAnthropic
 from langgraph.graph import StateGraph, START
 from langgraph.checkpoint.memory import InMemorySaver
 from dotenv import load_dotenv
@@ -15,7 +16,7 @@ load_dotenv()
 
 checkpointer = InMemorySaver()
 
-tars_llm = ChatGoogleGenerativeAI(model="gemini-2.5-pro")
+tars_llm = ChatOpenAI(model="gpt-4.1")
 
 TARS_agent = create_react_agent(
         model=tars_llm,

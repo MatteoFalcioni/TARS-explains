@@ -23,7 +23,7 @@ if __name__ == "__main__":
 
         result = graph.invoke(
             {"messages": [{"role": "user", "content": usr_msg}]},
-            {"configurable": {"thread_id": "1"}, "recursion_limit" : 25},
+            {"configurable": {"thread_id": "1"}, "recursion_limit" : 45},
         )
 
         ai_message = result["messages"][-1].content

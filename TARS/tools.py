@@ -29,8 +29,8 @@ def write_equations(
 
     return Command(
         update={
-            "messages" : [ToolMessage(content=f"Equations written to {eq_path}", tool_call_id=tool_call_id)],
-            "equations": eq_path
+            "messages": [ToolMessage(content=f"Equation written to {eq_path.as_posix()}", tool_call_id=tool_call_id)],
+            "equations": eq_path.as_posix(),   # not Path, not nested
         }
     )
 
