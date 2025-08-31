@@ -1,24 +1,24 @@
 from typing import List, Union
-from typing_extensions import Annotated
-from langgraph.prebuilt.chat_agent_executor import AgentState
+from typing_extensions import Annotated, Dict
+from langgraph.graph import MessagesState
 
-def add_file(current_files: Union[List[str], None] = None, 
-             new_file: Union[str, None] = None
-)-> List:
+def add_file(current_files: Union[Dict[str, str], None] = None, 
+             new_file: Union[Dict[str, str], None] = None
+)-> Dict[str, str]:
     """
     Reducer to add a file to the state `files` list
     """
 
     if not current_files:
-        current_files = []
+        current_files = {}
     if not new_file:
         return current_files
 
-    if new_file in current_files:   # already in state, skip
+    if new_file['filename'] in current_files.keys():   # already in state, skip
         return current_files
     
     else: # save under full sandbox path
-        current_files.append(new_file)
+        current_files[new_file['filename']] = new_file['content']
     return current_files
 
 def update_humor(current_value: Union[int, None] = None, 
@@ -30,10 +30,7 @@ def update_humor(current_value: Union[int, None] = None,
         return current_value
     return new_value
 
-class TARSState(AgentState):
-    """
-    The state of the agent.
-    """
-    humor: Annotated[int, update_humor]
-    equations: Annotated[List[str], add_file]  
-    
+class TARSState(MessagesState):
+    humor: Annotated[int, update_humor] 
+    equations: Annotated[Dict[str, str], add_file]
+    remaining_steps : int

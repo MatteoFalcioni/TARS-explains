@@ -6,15 +6,16 @@ from langchain_openai import ChatOpenAI
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_anthropic import ChatAnthropic
 from langgraph.graph import StateGraph, START
-from langgraph.checkpoint.memory import InMemorySaver
+from langgraph.checkpoint.sqlite import SqliteSaver
 from dotenv import load_dotenv
+from langgraph.checkpoint.memory import InMemorySaver
+from langgraph.checkpoint.serde.jsonplus import JsonPlusSerializer
 
 from prompt import TARS_PROMPT
 from tools import write_equations, set_humor, get_humor
 
-load_dotenv()
 
-checkpointer = InMemorySaver()
+load_dotenv()
 
 tars_llm = ChatOpenAI(model="gpt-4.1")
 
@@ -34,8 +35,9 @@ def TARS_node(state: Annotated[TARSState, InjectedState]
 
 
 def make_graph():
+    checkpointer = InMemorySaver(serde=JsonPlusSerializer(pickle_fallback=False))
     builder = StateGraph(TARSState)
     builder.add_node("TARS_agent", TARS_node)
     builder.add_edge(START, "TARS_agent")
-    return builder.compile(checkpointer=checkpointer) 
+    return builder.compile(checkpointer=checkpointer)
     

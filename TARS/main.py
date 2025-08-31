@@ -1,6 +1,7 @@
 from graph import make_graph
 from dotenv import load_dotenv
 import os
+import uuid
 
 if __name__ == "__main__":
 
@@ -9,6 +10,7 @@ if __name__ == "__main__":
         raise EnvironmentError("OPENAI_API_KEY not found in environment!")
     
     graph = make_graph()
+    convo_id = str(uuid.uuid4())[:8]
 
     print("=== Type /bye to exit. ===\n")
 
@@ -23,9 +25,10 @@ if __name__ == "__main__":
 
         result = graph.invoke(
             {"messages": [{"role": "user", "content": usr_msg}]},
-            {"configurable": {"thread_id": "1"}, "recursion_limit" : 45},
+            {"configurable": {"thread_id": f"{convo_id}"}, "recursion_limit" : 45},
         )
 
         ai_message = result["messages"][-1].content
 
         print(f'\nTARS: {ai_message}\n')
+

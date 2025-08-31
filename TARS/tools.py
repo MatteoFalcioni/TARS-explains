@@ -3,17 +3,18 @@ from langchain_core.tools import InjectedToolCallId
 from langgraph.prebuilt import InjectedState
 from langchain_core.messages import ToolMessage
 from langchain_core.tools import tool
-from pathlib import Path
+import os
 from typing_extensions import Annotated
 import uuid
 
 from state import TARSState
 
-EQUATIONS_DIR = Path("equations")
+EQUATIONS_DIR = "equations"
+os.makedirs(EQUATIONS_DIR, exist_ok=True)
 
 @tool
 def write_equations(
-    equations: Annotated[str, "Markdown content of ONE equation (use $$ LaTeX $$)."],
+    equation: Annotated[str, "Markdown content of ONE equation (use $$ LaTeX $$)."],
     tool_call_id: Annotated[str, InjectedToolCallId],
 ) -> Command:
     """
@@ -21,16 +22,18 @@ def write_equations(
     Start the text file with the equation number as title, like # eq. 1
     Returns the saved path and appends it to state['equations'].
     """
-    EQUATIONS_DIR.mkdir(parents=True, exist_ok=True)
+    
     short = str(uuid.uuid4())[:8]
-    eq_path = EQUATIONS_DIR / f"equation_{short}.md"
+    eq_path = f"{EQUATIONS_DIR}/equation_{short}.md"
 
-    eq_path.write_text(equations)
+    content = equation
+
+    new_entry = {"filename": eq_path, "content": content}
 
     return Command(
         update={
-            "messages": [ToolMessage(content=f"Equation written to {eq_path.as_posix()}", tool_call_id=tool_call_id)],
-            "equations": eq_path.as_posix(),   # not Path, not nested
+            "messages": [ToolMessage(content=f"Equation written to {eq_path}", tool_call_id=tool_call_id)],
+            "equations": new_entry,   # not Path, not nested
         }
     )
 
@@ -53,10 +56,10 @@ def get_humor(state: Annotated[TARSState, InjectedState], tool_call_id : Annotat
     Get the current humor value: it will be an integer value from 0 to 100, representing a percentage of humor
     """
 
-    current_humor = state.get('humor', None)
+    current_humor = state.get('humor', 'not set')
 
-    if not current_humor:
-        raise ValueError("Humor is not set")
+    if current_humor == 'not set':
+        print("Humor is not set!")
 
     return Command(
         update={
