@@ -40,6 +40,7 @@ def write_equations(
         }
     )
 
+
 @tool 
 def set_humor(value : Annotated[int, "The humor value to set"],
               tool_call_id : Annotated[str, InjectedToolCallId]) -> Command:
