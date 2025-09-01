@@ -3,13 +3,20 @@ from dotenv import load_dotenv
 import os
 import uuid
 
+from langgraph.checkpoint.sqlite import SqliteSaver
+from langgraph.checkpoint.memory import InMemorySaver
+from langgraph.checkpoint.serde.jsonplus import JsonPlusSerializer
+
 if __name__ == "__main__":
 
     load_dotenv()
     if not os.getenv("OPENAI_API_KEY"):
         raise EnvironmentError("OPENAI_API_KEY not found in environment!")
     
-    graph = make_graph()
+    checkpointer = InMemorySaver()
+    
+    graph = make_graph(checkpointer=checkpointer)
+    
     convo_id = str(uuid.uuid4())[:8]
 
     print("=== Type /bye to exit. ===\n")
