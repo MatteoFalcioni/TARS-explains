@@ -1,4 +1,4 @@
-from typing import List, Union
+from typing import List, Union, Optional
 from typing_extensions import Annotated, Dict
 from langgraph.prebuilt.chat_agent_executor import AgentState
 
@@ -13,6 +13,17 @@ def add_file(current_files: Union[Dict[str, str], None] = None,
     right = new_file or {}
 
     return {**left, **right}
+
+
+def add_to_list(current_list: Optional[List[str]] = None,
+                new_item: Optional[str] = None) -> List[str]:
+    left = current_list or []
+    if new_item is None:
+        return left[:]   # copia immutabile
+    if new_item in left:
+        return left[:]   # già presente, restituisco copia
+    return left + [new_item]   # nuova lista, aggiunto in coda
+
 
 def update_humor(current_value: Union[int, None] = None, 
                  new_value: Union[int, None] = None
