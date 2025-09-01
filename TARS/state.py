@@ -6,7 +6,7 @@ def add_file(current_files: Union[Dict[str, str], None] = None,
              new_file: Union[Dict[str, str], None] = None
 )-> Dict[str, str]:
     """
-    Reducer to add a file to the state `files` list
+    Reducer to add a file to the state `equations` dictionary
     """
 
     left = current_files or {}
@@ -17,6 +17,9 @@ def add_file(current_files: Union[Dict[str, str], None] = None,
 
 def add_to_list(current_list: Optional[List[str]] = None,
                 new_item: Optional[str] = None) -> List[str]:
+    """
+    Reducer to add an item to the state `equations` list
+    """
     left = current_list or []
     if new_item is None:
         return left[:]   # copia immutabile
@@ -34,6 +37,10 @@ def update_humor(current_value: Union[int, None] = None,
         return current_value
     return new_value
 
+'''class TARSState(AgentState):
+    humor: Annotated[int, update_humor] 
+    equations: Annotated[Dict[str, str], add_file]'''
+
 class TARSState(AgentState):
     humor: Annotated[int, update_humor] 
-    equations: Annotated[Dict[str, str], add_file]
+    equations: Annotated[List[str], add_to_list]
