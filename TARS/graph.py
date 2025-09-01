@@ -1,6 +1,6 @@
 from langgraph.types import Command
 from typing_extensions import Annotated, Literal
-from state import TARSState
+from TARS.state import TARSState
 from langgraph.prebuilt import create_react_agent, InjectedState
 from langchain_openai import ChatOpenAI
 from langchain_google_genai import ChatGoogleGenerativeAI
@@ -9,8 +9,8 @@ from langgraph.graph import StateGraph, START
 from dotenv import load_dotenv
 
 
-from prompt import TARS_PROMPT
-from tools import write_equations, set_humor, get_humor
+from TARS.prompt import TARS_PROMPT
+from TARS.tools import write_equations, set_humor, get_humor
 
 
 load_dotenv()

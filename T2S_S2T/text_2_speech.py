@@ -21,10 +21,14 @@ def record_audio_until_stop(state: TARSState):
     recording = True  # Flag to control recording
     sample_rate = 16000 # (kHz) Adequate for human voice frequency
 
+    # ---- WSLg: force PulseAudio input ----
+    sd.default.device = ("pulse", None)
+    sd.default.samplerate = sample_rate
+
     def record_audio():
         """Continuously records audio until the recording flag is set to False."""
         nonlocal audio_data, recording
-        with sd.InputStream(samplerate=sample_rate, channels=1, dtype='int16') as stream:
+        with sd.InputStream(device="pulse", samplerate=sample_rate, channels=1, dtype='int16') as stream:
             print("Recording your instruction! ... Press Enter to stop recording.")
             while recording:
                 audio_chunk, _ = stream.read(1024)  # Read audio data in chunks

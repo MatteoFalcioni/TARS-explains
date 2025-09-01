@@ -7,7 +7,7 @@ import os
 from typing_extensions import Annotated
 import uuid
 
-from state import TARSState
+from TARS.state import TARSState
 
 EQUATIONS_DIR = "equations"
 os.makedirs(EQUATIONS_DIR, exist_ok=True)

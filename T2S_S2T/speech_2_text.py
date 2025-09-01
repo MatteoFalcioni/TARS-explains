@@ -7,7 +7,7 @@ from langchain_core.tools import InjectedToolCallId
 from langgraph.prebuilt import InjectedState
 from typing_extensions import Annotated
 
-from state import TARSState
+from TARS.state import TARSState
 
 # Initialize ElevenLabs client
 elevenlabs_client = ElevenLabs(api_key=os.getenv("ELEVENLABS_API_KEY"))
