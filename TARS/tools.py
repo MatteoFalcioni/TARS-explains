@@ -14,11 +14,11 @@ os.makedirs(EQUATIONS_DIR, exist_ok=True)
 
 @tool
 def write_equations(
-    equation: Annotated[str, "Markdown content of ONE equation (use $$ LaTeX $$)."],
+    equation: Annotated[str, "Markdown content of ONE equation."],
     tool_call_id: Annotated[str, InjectedToolCallId],
 ) -> Command:
     """
-    Write ONE equation in Markdown to the filesystem.
+    Write an equation in Markdown to the filesystem.
     Start the text file with the equation number as title, like # eq. 1
     Returns the saved path and appends it to state['equations'].
     """
@@ -27,6 +27,9 @@ def write_equations(
     eq_path = f"{EQUATIONS_DIR}/equation_{short}.md"
 
     content = equation
+
+    with open(eq_path, "w") as f:
+        f.write(content)
 
     new_entry = {"filename": eq_path, "content": content}
 
