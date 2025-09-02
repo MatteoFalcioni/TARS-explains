@@ -14,7 +14,7 @@ from TARS.tools import write_equations, set_humor, get_humor
 
 load_dotenv()
 
-tars_llm = ChatOpenAI(model="gpt-4.1")
+tars_llm = ChatOpenAI(model="gpt-5")
 
 TARS_agent = create_react_agent(
         model=tars_llm,
