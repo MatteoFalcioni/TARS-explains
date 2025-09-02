@@ -23,16 +23,16 @@ def play_audio(state: TARSState):
     
     # Call text_to_speech API with turbo model for low latency
     response = elevenlabs_client.text_to_speech.convert(
-        voice_id="dNXy174F4uFM8G0CUjYL", # TARS (cloned)
+        voice_id="dNXy174F4uFM8G0CUjYL", # Adam pre-made voice
         output_format="mp3_22050_32",
         text=cleaned_text,
         model_id="eleven_turbo_v2_5", 
         voice_settings=VoiceSettings(
-            stability=0.9,          # high = flatter, less expressive (TARS-like)
-            similarity_boost=0.6,   # moderate; reduces “actor-y” imprint
-            style=0.0,              # no dramatic style
-            use_speaker_boost=False # keeps it less “boomy”/radio-like
-        ),
+            stability=0.8,         # a bit less flat → slight inflection
+            similarity_boost=0.95,  # lean into the cloned timbre
+            style=0.1,             # tiny expressiveness
+            use_speaker_boost=False # avoid cinematic boom
+        )
     )
     
     # Play the audio back
