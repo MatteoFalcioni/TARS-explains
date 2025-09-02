@@ -4,11 +4,14 @@ import threading
 import numpy as np
 import sounddevice as sd
 from scipy.io.wavfile import write
+from dotenv import load_dotenv
 
 from openai import OpenAI
 from TARS.state import TARSState
 
 from langchain_core.messages import HumanMessage
+
+load_dotenv()
 
 # Initialize OpenAI client
 openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))

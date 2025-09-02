@@ -1,16 +1,14 @@
 from elevenlabs import play, VoiceSettings
 from elevenlabs.client import ElevenLabs
 import os
-
-from langgraph.types import Command
-from langchain_core.tools import InjectedToolCallId
-from langgraph.prebuilt import InjectedState
-from typing_extensions import Annotated
+from dotenv import load_dotenv
 
 from TARS.state import TARSState
 
+load_dotenv()
+
 # Initialize ElevenLabs client
-elevenlabs_client = ElevenLabs(api_key=os.getenv("ELEVENLABS_API_KEY"))
+elevenlabs_client = ElevenLabs(api_key=os.getenv("XI_API_KEY"))
 
 def play_audio(state: TARSState):
     
@@ -30,10 +28,10 @@ def play_audio(state: TARSState):
         text=cleaned_text,
         model_id="eleven_turbo_v2_5", 
         voice_settings=VoiceSettings(
-            stability=0.0,
-            similarity_boost=1.0,
-            style=0.0,
-            use_speaker_boost=True,
+            stability=0.9,          # high = flatter, less expressive (TARS-like)
+            similarity_boost=0.6,   # moderate; reduces “actor-y” imprint
+            style=0.0,              # no dramatic style
+            use_speaker_boost=False # keeps it less “boomy”/radio-like
         ),
     )
     
