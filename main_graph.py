@@ -35,7 +35,7 @@ if __name__ == "__main__":
     builder.add_edge("audio_input", "TARS")
     builder.add_edge("TARS","audio_output")
     builder.add_edge("audio_output", END)
-    graph = builder.compile()
+    graph = builder.compile(checkpointer=checkpointer)
 
     png_bytes = graph.get_graph(xray=1).draw_mermaid_png()
 
