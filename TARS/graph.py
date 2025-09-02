@@ -8,7 +8,6 @@ from langchain_anthropic import ChatAnthropic
 from langgraph.graph import StateGraph, START
 from dotenv import load_dotenv
 
-
 from TARS.prompt import TARS_PROMPT
 from TARS.tools import write_equations, set_humor, get_humor
 

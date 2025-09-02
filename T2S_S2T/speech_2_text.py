@@ -23,7 +23,7 @@ def play_audio(state: TARSState):
     
     # Call text_to_speech API with turbo model for low latency
     response = elevenlabs_client.text_to_speech.convert(
-        voice_id="pNInz6obpgDQGcFmaJgB", # Adam pre-made voice
+        voice_id="dNXy174F4uFM8G0CUjYL", # TARS (cloned)
         output_format="mp3_22050_32",
         text=cleaned_text,
         model_id="eleven_turbo_v2_5", 
