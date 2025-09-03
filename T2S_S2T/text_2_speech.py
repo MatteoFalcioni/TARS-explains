@@ -1,78 +1,67 @@
-import io
+from elevenlabs import play, VoiceSettings
+from elevenlabs.client import ElevenLabs
 import os
-import threading
-import numpy as np
-import sounddevice as sd
-from scipy.io.wavfile import write
 from dotenv import load_dotenv
+import re  
 
-from openai import OpenAI
 from TARS.state import TARSState
-
-from langchain_core.messages import HumanMessage
 
 load_dotenv()
 
-# Initialize OpenAI client
-openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+# Initialize ElevenLabs client
+elevenlabs_client = ElevenLabs(api_key=os.getenv("XI_API_KEY"))
 
-def record_audio_until_stop(state: TARSState):
-
-    """Records audio from the microphone until Enter is pressed, then saves it to a .wav file."""
+def add_tars_pauses(text):
+    """
+    Adds SSML break tags for pauses after sentence-ending punctuation (. and ?).
+    This creates TARS's characteristic deliberate pacing.
+    Returns the text wrapped in <speak> tags.
+    """
+    # Use regex to find all periods and question marks, and add a break tag after them.
+    # substitute "..." with a long break tag
+    text = re.sub(r'\.{3}', '<break time="0.6s"/>', text)
+    # The (?!\d) is a "negative lookahead" to avoid matching decimals like "90.5"
+    text = re.sub(r'([.?:;!])(?!\d)\s*', r'\1<break time="0.4s"/> ', text)
+    # add short pauses as well
+    text_with_pauses = re.sub(r'([—])(?!\d)\s*', r'\1<break time="0.1s"/> ', text)
+    # Add pauses after "Cooper"
+    text = re.sub(r'(Cooper)([,.!?]?)\s*', r'\1\2<break time="0.5s"/> ', text)
     
-    audio_data = []  # List to store audio chunks
-    recording = True  # Flag to control recording
-    sample_rate = 16000 # (kHz) Adequate for human voice frequency
+    # WRAP THE FINAL TEXT IN <speak> TAGS
+    # This is what tells ElevenLabs to parse the content as SSML.
+    ssml_text = f"<speak>{text_with_pauses}</speak>"
+    return ssml_text
 
-    # ---- WSLg: force PulseAudio input ----
-    sd.default.device = ("pulse", None)
-    sd.default.samplerate = sample_rate
-
-    def record_audio():
-        """Continuously records audio until the recording flag is set to False."""
-        nonlocal audio_data, recording
-        with sd.InputStream(device="pulse", samplerate=sample_rate, channels=1, dtype='int16') as stream:
-            print("Recording your instruction! ... Press Enter to stop recording.")
-            while recording:
-                audio_chunk, _ = stream.read(1024)  # Read audio data in chunks
-                audio_data.append(audio_chunk)
-
-    def stop_recording():
-        """Waits for user input to stop the recording."""
-        input()  # Wait for Enter key press
-        nonlocal recording
-        recording = False
-
-    # Start recording in a separate thread
-    recording_thread = threading.Thread(target=record_audio)
-    recording_thread.start()
-
-    # Start a thread to listen for the Enter key
-    stop_thread = threading.Thread(target=stop_recording)
-    stop_thread.start()
-
-    # Wait for both threads to complete
-    stop_thread.join()
-    recording_thread.join()
-
-    # Stack all audio chunks into a single NumPy array and write to file
-    audio_data = np.concatenate(audio_data, axis=0)
+def play_audio(state: TARSState):
     
-    # Convert to WAV format in-memory
-    audio_bytes = io.BytesIO()
-    write(audio_bytes, sample_rate, audio_data)  # Use scipy's write function to save to BytesIO
-    audio_bytes.seek(0)  # Go to the start of the BytesIO buffer
-    audio_bytes.name = "audio.wav" # Set a filename for the in-memory file
+    """Plays the audio response from the remote graph with ElevenLabs."""
 
-    # Transcribe via Whisper
-    transcription = openai_client.audio.transcriptions.create(
-       model="whisper-1", 
-       file=audio_bytes,
+    # Response from the agent 
+    response = state['messages'][-1]
+
+    # Prepare text by replacing ** with empty strings
+    # These can cause unexpected behavior in ElevenLabs
+    cleaned_text = response.content.replace("**", "").replace("$", "").replace("/", "" )
+
+    # add pauses
+    text_with_ssml = add_tars_pauses(cleaned_text)
+    
+    # Call text_to_speech API with turbo model for low latency
+    response = elevenlabs_client.text_to_speech.convert(
+        voice_id="dNXy174F4uFM8G0CUjYL", # Adam pre-made voice
+        output_format="mp3_22050_32",
+        text=text_with_ssml,
+        model_id="eleven_turbo_v2_5", 
+        voice_settings=VoiceSettings(
+            stability=0.75,         # controls inflection: high value -> robotic
+            similarity_boost=0.99,  # lean into the cloned timbre
+            style=0.0,             # no expressiveness (slows down latency)
+            use_speaker_boost=False # avoid cinematic boom
+        )
     )
+    
+    # Play the audio back
+    play(response)
 
-    # Print the transcription
-    print("Here is the transcription:", transcription.text)
 
-    # Write to messages 
-    return {"messages": [HumanMessage(content=transcription.text)]}
 

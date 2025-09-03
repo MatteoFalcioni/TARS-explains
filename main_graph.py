@@ -7,8 +7,8 @@ from dotenv import load_dotenv
 import os
 
 from TARS.state import TARSState
-from T2S_S2T.text_2_speech import record_audio_until_stop
-from T2S_S2T.speech_2_text import play_audio
+from T2S_S2T.speech_to_text import record_audio_until_stop
+from T2S_S2T.text_2_speech1 import play_audio
 
 if __name__ == "__main__":
 

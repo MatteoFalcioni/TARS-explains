@@ -12,6 +12,8 @@ function App() {
   const [audioUrl, setAudioUrl] = useState(null);
   const [equations, setEquations] = useState([]);
   const chunksRef = useRef([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const handleToggleRecord = async () => {
     if (!recording) {
@@ -30,16 +32,30 @@ function App() {
         const formData = new FormData();
         formData.append("audio", blob, "recording.webm");
 
-        const res = await fetch("http://localhost:8000/api/ask", {
-          method: "POST",
-          body: formData,
-        });
+        setLoading(true);
+        setError("");
+        try {
+          const res = await fetch("http://localhost:8000/api/ask", {
+            method: "POST",
+            body: formData,
+          });
 
-        const data = await res.json();
-        setTranscript(data.transcript);
-        setTarsText(data.text);
-        setAudioUrl(`http://localhost:8000${data.audio_url}`);
-        setEquations(data.equations);
+          if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            throw new Error(err.detail || `Request failed with ${res.status}`);
+          }
+
+          const data = await res.json();
+          setTranscript(data.transcript);
+          setTarsText(data.text);
+          setAudioUrl(`http://localhost:8000${data.audio_url}`);
+          setEquations(data.equations);
+        } catch (e) {
+          console.error(e);
+          setError(e.message || "Unknown error");
+        } finally {
+          setLoading(false);
+        }
       };
 
       recorder.start();
