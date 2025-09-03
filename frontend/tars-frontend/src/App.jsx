@@ -34,6 +34,7 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [messages, setMessages] = useState([]); // ← chat history
+  const [eqCount, setEqCount] = useState(0); // global equation numbering
   const chunksRef = useRef([]);
   const bottomRef = useRef(null);
 
@@ -86,7 +87,12 @@ export default function App() {
 
           const data = await res.json();
 
-          // Append both the user turn and TARS turn to the chat
+          // Assign progressive numbers to this turn's equations
+          const numberedEquations = (data.equations || []).map((eq, i) => ({
+            ...eq,
+            n: eqCount + i + 1, // 1-based, continues from previous turns
+          }));
+
           setMessages((prev) => [
             ...prev,
             { role: "user", text: data.transcript },
@@ -94,9 +100,11 @@ export default function App() {
               role: "tars",
               text: data.text,
               audioUrl: `http://localhost:8000${data.audio_url}`,
-              equations: data.equations || [],
+              equations: numberedEquations,
             },
           ]);
+          setEqCount(eqCount + numberedEquations.length);
+          
         } catch (e) {
           console.error(e);
           setError(e.message || "Unknown error");
@@ -166,15 +174,21 @@ export default function App() {
                       Equations
                     </div>
                     <div className="space-y-3">
-                      {msg.equations.map((eq, i) => (
-                        <div key={i} className="border-t border-gray-700 pt-2 first:border-none first:pt-0">
-                          <ReactMarkdown
-                            children={eq.content}
-                            remarkPlugins={[remarkMath]}
-                            rehypePlugins={[rehypeKatex]}
-                          />
-                        </div>
-                      ))}
+                      {msg.equations.map((eq, i) => {
+                        const clean = (eq.content || "").replace(/^#.*\n/, ""); // remove a leading '# Equation ...' line if present
+                        return (
+                          <div key={i} className="relative rounded-md border border-gray-700/60 bg-gray-900/40 p-3">
+                            <div className="absolute right-3 top-2 text-gray-400 text-sm">
+                              (eq. {eq.n})
+                            </div>
+                            <ReactMarkdown
+                              children={clean}
+                              remarkPlugins={[remarkMath]}
+                              rehypePlugins={[rehypeKatex]}
+                            />
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 )}

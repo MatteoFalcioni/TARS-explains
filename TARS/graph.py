@@ -9,7 +9,7 @@ from langgraph.graph import StateGraph, START
 from dotenv import load_dotenv
 
 from TARS.prompt import TARS_PROMPT
-from TARS.tools import write_equations, set_humor, get_humor
+from TARS.tools import write_equation, set_humor, get_humor
 
 
 load_dotenv()
@@ -18,7 +18,7 @@ tars_llm = ChatOpenAI(model="gpt-4.1")
 
 TARS_agent = create_react_agent(
         model=tars_llm,
-        tools=[write_equations, set_humor, get_humor],
+        tools=[write_equation, set_humor, get_humor],
         prompt=TARS_PROMPT,
         name="TARS_agent",
         state_schema=TARSState,
