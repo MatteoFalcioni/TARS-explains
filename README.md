@@ -53,32 +53,6 @@ You will find the app running at **[http://localhost:8080](http://localhost:8080
 
 ---
 
-## Architecture
-
-**Backend (FastAPI + LangGraph)**
-
-* `POST /api/ask` — accepts uploaded audio (from the browser), runs: Whisper → TARS (LangGraph) → ElevenLabs; writes equations as Markdown and returns JSON.
-* Static file serving: `/equations/*` (equation Markdown) and `/outputs/*` (synthesized MP3).
-* `GET /health` for readiness.
-
-**Frontend (Vite + React + TailwindCSS)**
-
-* Toggle mic button using the Web `MediaRecorder` API.
-* Sends the recorded blob to `/api/ask`.
-* Renders transcript (User), TARS text + audio, and equations (KaTeX), numbering `(eq. 1), (eq. 2), …` across the chat.
-
-**Agent (LangGraph)**
-
-* REACT agent with tools:
-
-  * `write_equations(content)` → writes one Markdown equation file.
-  * `get_humor()` / `set_humor(value)`.
-* Prompt enforces: equations are written to files, not embedded in the reply text; references appear as text (e.g., “(equation 1)”).
-
-> A diagram of the parent/subgraph is available in `./tars_graph.png`.
-
----
-
 ## Repository Layout (high level)
 
 ```
@@ -105,6 +79,31 @@ TARS-explains/
 └── frontend/tars-frontend # React app (Vite + TailwindCSS)
 
 ```
+---
+
+## Architecture
+
+**Backend (FastAPI + LangGraph)**
+
+* `POST /api/ask` — accepts uploaded audio (from the browser), runs: Whisper → TARS (LangGraph) → ElevenLabs; writes equations as Markdown and returns JSON.
+* Static file serving: `/equations/*` (equation Markdown) and `/outputs/*` (synthesized MP3).
+* `GET /health` for readiness.
+
+**Frontend (Vite + React + TailwindCSS)**
+
+* Toggle mic button using the Web `MediaRecorder` API.
+* Sends the recorded blob to `/api/ask`.
+* Renders transcript (User), TARS text + audio, and equations (KaTeX), numbering `(eq. 1), (eq. 2), …` across the chat.
+
+**Agent (LangGraph)**
+
+* REACT agent with tools:
+
+  * `write_equations(content)` → writes one Markdown equation file.
+  * `get_humor()` / `set_humor(value)`.
+* Prompt enforces: equations are written to files, not embedded in the reply text; references appear as text (e.g., “(equation 1)”).
+
+> A diagram of the parent/subgraph is available in `./tars_graph.png`.
 
 ---
 
@@ -208,6 +207,3 @@ TARS-explains/
 
 ---
 
-## License
-
-add license
