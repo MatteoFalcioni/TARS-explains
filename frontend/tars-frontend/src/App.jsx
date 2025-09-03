@@ -120,7 +120,7 @@ export default function App() {
           setLoading(true);
           setError("");
 
-          const res = await fetch("http://localhost:8000/api/ask", {
+          const res = await fetch("/api/ask", {
             method: "POST",
             body: formData,
           });
@@ -144,7 +144,7 @@ export default function App() {
             {
               role: "tars",
               text: data.text,
-              audioUrl: `http://localhost:8000${data.audio_url}`,
+              audioUrl: `${data.audio_url}`,
               equations: numberedEquations,
             },
           ]);

@@ -1,0 +1,29 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    env_file: 
+      - .env.api
+    volumes:
+      - ./equations:/app/equations
+      - ./outputs:/app/outputs
+    ports:
+      - "8000:8000"   # optional: direct access for debugging
+    networks:
+      - tarsnet
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+    depends_on:
+      - api
+    ports:
+      - "8080:80"
+    networks:
+      - tarsnet
+
+networks:
+  tarsnet:
+    driver: bridge
