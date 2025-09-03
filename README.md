@@ -4,9 +4,42 @@
 
 Users speak; the system transcribes, generates an answer, and synthesizes audio in a TARS-like voice.
 
-If asked about physics or mathematics questions, the system also provides supporting equations as Markdown files rendered in chat.
+TARS has a humor setting - just like in the movie! If you ask him, He will tell you what its humor level is.  
+You can tweak it as you like, fully vocally, by asking him to lower it or raise it. 
+Just be warned - it starts really high :) . He may be insufferable at times - like in the movie!
+
+If asked about physics or mathematics questions, TARS also provides supporting equations as Markdown files rendered in chat.
 
 A React frontend provides a clean interface with push‑to‑record, chat history, audio playback, and rendered equations with global numbering `(eq. n)`.
+
+---
+
+## Prerequisites
+
+* **Python** ≥ 3.11
+* **Node.js** ≥ 18 (recommended 20)
+* **OpenAI API key** (Whisper STT and TARS model - `gpt-4.1`)
+* **ElevenLabs API key** (TTS)
+* **Docker** + **Docker Compose v2** for containerized runs (recommended)
+
+---
+
+## Quick Start With Docker (*recommended*) 
+
+This setup serves the built React app via Nginx and proxies API/static routes to the FastAPI container, so the browser uses a single origin (no CORS).
+
+Put the required environment variables inside your `.env.api`, following the template `.env.template`.
+
+Then simply run from the root directory
+
+```bash
+docker compose build
+docker compose up
+```
+
+You will find the app running at **[http://localhost:8080](http://localhost:8080)**.
+
+> **Flow**: Click **Record**, then **Stop** → the browser POSTs audio to `/api/ask`; the backend clears `equations/`, transcribes with Whisper, runs TARS, synthesizes MP3 with ElevenLabs, returns JSON. The frontend shows the transcript (“User:”), the explanation (“TARS:”), auto‑plays the MP3, and renders all equations with global numbering.
 
 ---
 
@@ -42,7 +75,7 @@ A React frontend provides a clean interface with push‑to‑record, chat histor
   * `get_humor()` / `set_humor(value)`.
 * Prompt enforces: equations are written to files, not embedded in the reply text; references appear as text (e.g., “(equation 1)”).
 
-> A diagram of the parent/subgraph is available in `./tars_graph.png` (generated from your LangGraph definition).
+> A diagram of the parent/subgraph is available in `./tars_graph.png`.
 
 ---
 
@@ -72,35 +105,6 @@ TARS-explains/
 └── frontend/tars-frontend # React app (Vite + TailwindCSS)
 
 ```
-
----
-
-## Prerequisites
-
-* **Python** ≥ 3.11
-* **Node.js** ≥ 18 (recommended 20)
-* **OpenAI API key** (Whisper STT)
-* **ElevenLabs API key** (TTS)
-* (Optional) **Docker** + **Docker Compose v2** for containerized runs
-
----
-
-## Quick Start With Docker (*recommended*) 
-
-This setup serves the built React app via Nginx and proxies API/static routes to the FastAPI container, so the browser uses a single origin (no CORS).
-
-Put the required environment variables inside your `.env.api`, following the template `.env.template`.
-
-Then simply run from the root directory
-
-```bash
-docker compose build
-docker compose up
-```
-
-You will find the app running at **[http://localhost:8080](http://localhost:8080)**.
-
-> **Flow**: Click **Record**, then **Stop** → the browser POSTs audio to `/api/ask`; the backend clears `equations/`, transcribes with Whisper, runs TARS, synthesizes MP3 with ElevenLabs, returns JSON. The frontend shows the transcript (“User:”), the explanation (“TARS:”), auto‑plays the MP3, and renders all equations with global numbering.
 
 ---
 
