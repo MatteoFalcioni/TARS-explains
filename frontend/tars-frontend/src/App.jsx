@@ -28,6 +28,51 @@ function ChatBubble({ role, children }) {
   );
 }
 
+function MicIcon({ recording }) {
+  return (
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <rect x="9" y="3" width="6" height="12" rx="3" fill={recording ? "#fff" : "#e2e8f0"} />
+      <path d="M5 11a7 7 0 0 0 14 0" stroke={recording ? "#67e8f9" : "#94a3b8"} strokeWidth="2" />
+      <path d="M12 19v3M8 22h8" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function RecordButton({ recording, onClick }) {
+  return (
+    <button
+      onClick={onClick}
+      className="relative group w-28 h-28 rounded-full focus:outline-none"
+      title={recording ? "Stop recording" : "Start recording"}
+    >
+      {/* rotating conic ring */}
+      <span className={`absolute inset-0 rounded-full p-[2px] 
+        bg-[conic-gradient(from_0deg,#38bdf8_0%,#a78bfa_50%,#38bdf8_100%)]
+        ${recording ? "animate-[spin_3s_linear_infinite]" : "opacity-60"}
+      `}>
+        <span className="block w-full h-full rounded-full bg-gray-900"></span>
+      </span>
+
+      {/* inner core */}
+      <span className={`absolute inset-[6px] rounded-full flex items-center justify-center 
+        transition 
+        ${recording ? "bg-red-600" : "bg-gray-700 hover:bg-gray-600"}
+        ${recording ? "animate-glow-slow" : ""}
+      `}>
+        <MicIcon recording={recording} />
+      </span>
+
+      {/* ripples when recording */}
+      {recording && (
+        <>
+          <span className="absolute inset-0 rounded-full animate-ripple-slow bg-cyan-400/10" />
+          <span className="absolute inset-0 rounded-full animate-ripple-slow [animation-delay:.4s] bg-cyan-400/10" />
+        </>
+      )}
+    </button>
+  );
+}
+
 export default function App() {
   const [recording, setRecording] = useState(false);
   const [mediaRecorder, setMediaRecorder] = useState(null);
@@ -130,19 +175,8 @@ export default function App() {
       </h1>
 
       {/* Record Button */}
-      <button
-        onClick={handleToggleRecord}
-        className={[
-          "w-24 h-24 rounded-full flex items-center justify-center text-lg font-bold",
-          "shadow-lg transition ring-2 ring-white/10",
-          recording
-            ? "bg-red-600 animate-pulse"
-            : "bg-gray-700 hover:bg-gray-600",
-        ].join(" ")}
-        title={recording ? "Stop recording" : "Start recording"}
-      >
-        {recording ? "Stop" : "Record"}
-      </button>
+      <RecordButton recording={recording} onClick={handleToggleRecord} />
+
 
       {/* Status */}
       <div className="h-6">
