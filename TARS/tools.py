@@ -13,8 +13,8 @@ EQUATIONS_DIR = "equations"
 os.makedirs(EQUATIONS_DIR, exist_ok=True)
 
 @tool
-def write_equations(
-    equation: Annotated[str, "Markdown content of ONE equation."],
+def write_equation(
+    equation: Annotated[str, "Markdown content of ONE equation. Be sure to delimit equations by dollar signs like $<equation>$"],
     tool_call_id: Annotated[str, InjectedToolCallId],
 ) -> Command:
     """
@@ -27,6 +27,9 @@ def write_equations(
     eq_path = f"{EQUATIONS_DIR}/equation_{short}.md"
 
     content = equation
+
+    if "$" not in content:
+        content = f"${content}$"
 
     with open(eq_path, "w") as f:
         f.write(content)
