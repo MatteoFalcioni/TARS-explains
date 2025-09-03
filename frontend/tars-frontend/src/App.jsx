@@ -1,40 +1,79 @@
-import { useState, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import "katex/dist/katex.min.css";
 
-function App() {
+function ChatBubble({ role, children }) {
+  const isUser = role === "user";
+  return (
+    <div className={`flex ${isUser ? "justify-end" : "justify-start"}`}>
+      <div
+        className={[
+          "max-w-[80%] rounded-xl p-4 shadow",
+          isUser ? "bg-sky-800/60" : "bg-gray-800/80",
+        ].join(" ")}
+      >
+        <div
+          className={[
+            "mb-2 font-semibold",
+            isUser ? "text-sky-300" : "text-green-300",
+          ].join(" ")}
+        >
+          {isUser ? "User:" : "TARS:"}
+        </div>
+        <div className="whitespace-pre-wrap leading-relaxed">{children}</div>
+      </div>
+    </div>
+  );
+}
+
+export default function App() {
   const [recording, setRecording] = useState(false);
   const [mediaRecorder, setMediaRecorder] = useState(null);
-  const [transcript, setTranscript] = useState("");
-  const [tarsText, setTarsText] = useState("");
-  const [audioUrl, setAudioUrl] = useState(null);
-  const [equations, setEquations] = useState([]);
-  const chunksRef = useRef([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [messages, setMessages] = useState([]); // ← chat history
+  const chunksRef = useRef([]);
+  const bottomRef = useRef(null);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, loading]);
 
   const handleToggleRecord = async () => {
     if (!recording) {
-      // Start recording
+      if (!("MediaRecorder" in window)) {
+        setError("MediaRecorder not supported in this browser.");
+        return;
+      }
+
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const recorder = new MediaRecorder(stream);
+      chunksRef.current = [];
 
       recorder.ondataavailable = (e) => {
-        chunksRef.current.push(e.data);
+        if (e.data && e.data.size > 0) chunksRef.current.push(e.data);
       };
 
       recorder.onstop = async () => {
-        const blob = new Blob(chunksRef.current, { type: "audio/webm" });
-        chunksRef.current = [];
-
-        const formData = new FormData();
-        formData.append("audio", blob, "recording.webm");
-
-        setLoading(true);
-        setError("");
         try {
+          // release mic light
+          stream.getTracks().forEach((t) => t.stop());
+          if (!chunksRef.current.length) {
+            setError("No audio captured. Try again.");
+            return;
+          }
+
+          const blob = new Blob(chunksRef.current, { type: "audio/webm" });
+          chunksRef.current = [];
+
+          const formData = new FormData();
+          formData.append("audio", blob, "recording.webm");
+
+          setLoading(true);
+          setError("");
+
           const res = await fetch("http://localhost:8000/api/ask", {
             method: "POST",
             body: formData,
@@ -46,10 +85,18 @@ function App() {
           }
 
           const data = await res.json();
-          setTranscript(data.transcript);
-          setTarsText(data.text);
-          setAudioUrl(`http://localhost:8000${data.audio_url}`);
-          setEquations(data.equations);
+
+          // Append both the user turn and TARS turn to the chat
+          setMessages((prev) => [
+            ...prev,
+            { role: "user", text: data.transcript },
+            {
+              role: "tars",
+              text: data.text,
+              audioUrl: `http://localhost:8000${data.audio_url}`,
+              equations: data.equations || [],
+            },
+          ]);
         } catch (e) {
           console.error(e);
           setError(e.message || "Unknown error");
@@ -62,66 +109,81 @@ function App() {
       setMediaRecorder(recorder);
       setRecording(true);
     } else {
-      // Stop recording
-      mediaRecorder.stop();
+      mediaRecorder?.stop();
       setRecording(false);
+      setMediaRecorder(null);
     }
   };
 
   return (
     <div className="min-h-screen flex flex-col items-center p-8 space-y-6">
-      <h1 className="text-3xl font-bold text-blue-400">TARS Physics Explainer</h1>
+      <h1 className="text-3xl sm:text-4xl font-extrabold text-blue-400 tracking-wide">
+        TARS-explains
+      </h1>
 
-      {/* Mic Button */}
+      {/* Record Button */}
       <button
         onClick={handleToggleRecord}
-        className={`w-24 h-24 rounded-full flex items-center justify-center text-xl font-bold shadow-lg transition 
-          ${recording ? "bg-red-600 animate-pulse" : "bg-gray-700 hover:bg-gray-600"}
-        `}
+        className={[
+          "w-24 h-24 rounded-full flex items-center justify-center text-lg font-bold",
+          "shadow-lg transition ring-2 ring-white/10",
+          recording
+            ? "bg-red-600 animate-pulse"
+            : "bg-gray-700 hover:bg-gray-600",
+        ].join(" ")}
+        title={recording ? "Stop recording" : "Start recording"}
       >
         {recording ? "Stop" : "Record"}
       </button>
 
-      {/* Display transcript */}
-      {transcript && (
-        <div className="w-full max-w-2xl bg-gray-800 p-4 rounded-lg">
-          <h2 className="text-lg font-semibold text-blue-300">You said:</h2>
-          <p className="mt-2">{transcript}</p>
-        </div>
-      )}
+      {/* Status */}
+      <div className="h-6">
+        {loading && <div className="text-sm text-blue-300">TARS is thinking…</div>}
+        {error && <div className="text-sm text-red-400">Error: {error}</div>}
+      </div>
 
-      {/* Display TARS answer */}
-      {tarsText && (
-        <div className="w-full max-w-2xl bg-gray-800 p-4 rounded-lg">
-          <h2 className="text-lg font-semibold text-green-300">TARS:</h2>
-          <p className="mt-2">{tarsText}</p>
-        </div>
-      )}
+      {/* Chat log */}
+      <div className="w-full max-w-3xl flex-1 space-y-4">
+        {messages.map((msg, idx) => (
+          <div key={idx} className="space-y-2">
+            <ChatBubble role={msg.role}>{msg.text}</ChatBubble>
 
-      {/* Audio playback */}
-      {audioUrl && (
-        <audio src={audioUrl} controls autoPlay className="mt-4" />
-      )}
+            {/* If this is a TARS message, show audio + equations */}
+            {msg.role === "tars" && (
+              <div className="pl-2">
+                {msg.audioUrl && (
+                  <audio
+                    className="mt-2"
+                    src={msg.audioUrl}
+                    controls
+                    autoPlay={idx === messages.length - 1}
+                  />
+                )}
 
-      {/* Equations */}
-      {equations.length > 0 && (
-        <div className="w-full max-w-2xl bg-gray-800 p-4 rounded-lg">
-          <h2 className="text-lg font-semibold text-yellow-300">Equations</h2>
-          <div className="mt-2 space-y-4">
-            {equations.map((eq, idx) => (
-              <div key={idx} className="border-t border-gray-600 pt-2">
-                <ReactMarkdown
-                  children={eq.content}
-                  remarkPlugins={[remarkMath]}
-                  rehypePlugins={[rehypeKatex]}
-                />
+                {msg.equations?.length > 0 && (
+                  <div className="mt-3 ml-8 rounded-lg bg-gray-800/60 p-3 border border-gray-700">
+                    <div className="text-sm font-semibold text-yellow-300 mb-2">
+                      Equations
+                    </div>
+                    <div className="space-y-3">
+                      {msg.equations.map((eq, i) => (
+                        <div key={i} className="border-t border-gray-700 pt-2 first:border-none first:pt-0">
+                          <ReactMarkdown
+                            children={eq.content}
+                            remarkPlugins={[remarkMath]}
+                            rehypePlugins={[rehypeKatex]}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
-            ))}
+            )}
           </div>
-        </div>
-      )}
+        ))}
+        <div ref={bottomRef} />
+      </div>
     </div>
   );
 }
-
-export default App;
