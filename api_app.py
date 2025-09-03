@@ -92,6 +92,8 @@ async def ask(audio: UploadFile = File(...)):
         # 5. Generate TTS audio with ElevenLabs
         cleaned_text = tars_text.replace("**", "").replace("$", "").replace("/", "")
         paused_text = add_tars_pauses(cleaned_text)
+        paused_text = paused_text.replace("Dr.", "doctor").replace("dr.", "doctor").replace("Dr", "doctor").replace("prof.", "professor").replace("Prof.", "professor")
+        paused_text = paused_text.replace(".", "\n")
 
         response = elevenlabs_client.text_to_speech.convert(
             voice_id="dNXy174F4uFM8G0CUjYL",  # TARS-like voice
@@ -101,7 +103,7 @@ async def ask(audio: UploadFile = File(...)):
             voice_settings=VoiceSettings(
                 speed=0.93,
                 stability=0.83,
-                similarity_boost=0.99,
+                similarity_boost=0.98,
                 style=0.0,
                 use_speaker_boost=False,
             ),
