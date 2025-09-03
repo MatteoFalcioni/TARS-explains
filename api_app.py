@@ -1,5 +1,4 @@
 import os
-import shutil
 import uuid
 from fastapi import FastAPI, UploadFile, File
 from fastapi.responses import JSONResponse
@@ -12,7 +11,8 @@ from langgraph.checkpoint.memory import InMemorySaver
 from langchain_core.messages import HumanMessage
 
 from openai import OpenAI
-from elevenlabs.client import ElevenLabs, VoiceSettings
+from elevenlabs import VoiceSettings
+from elevenlabs.client import ElevenLabs
 
 # === Setup ===
 load_dotenv()
