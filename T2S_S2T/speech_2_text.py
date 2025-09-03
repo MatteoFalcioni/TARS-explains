@@ -24,6 +24,8 @@ def add_tars_pauses(text):
     text = re.sub(r'([.?:;!])(?!\d)\s*', r'\1<break time="0.4s"/> ', text)
     # add short pauses as well
     text_with_pauses = re.sub(r'([—])(?!\d)\s*', r'\1<break time="0.1s"/> ', text)
+    # Add pauses after "Cooper"
+    text = re.sub(r'(Cooper)([,.!?]?)\s*', r'\1\2<break time="0.4s"/> ', text)
     
     # WRAP THE FINAL TEXT IN <speak> TAGS
     # This is what tells ElevenLabs to parse the content as SSML.
@@ -41,8 +43,8 @@ def play_audio(state: TARSState):
     # These can cause unexpected behavior in ElevenLabs
     cleaned_text = response.content.replace("**", "").replace("$", "").replace("/", "" )
 
+    # add pauses
     text_with_ssml = add_tars_pauses(cleaned_text)
-    print(text_with_ssml)
     
     # Call text_to_speech API with turbo model for low latency
     response = elevenlabs_client.text_to_speech.convert(
@@ -51,9 +53,9 @@ def play_audio(state: TARSState):
         text=text_with_ssml,
         model_id="eleven_turbo_v2_5", 
         voice_settings=VoiceSettings(
-            stability=0.78,         # a bit less flat → slight inflection
-            similarity_boost=0.92,  # lean into the cloned timbre
-            style=0.1,             # tiny expressiveness
+            stability=0.75,         # controls inflection: high value -> robotic
+            similarity_boost=0.99,  # lean into the cloned timbre
+            style=0.0,             # no expressiveness (slows down latency)
             use_speaker_boost=False # avoid cinematic boom
         )
     )
