@@ -21,9 +21,9 @@ def add_tars_pauses(text):
     # substitute "..." with a long break tag
     text = re.sub(r'\.{3}', '<break time="0.6s"/>', text)
     # The (?!\d) is a "negative lookahead" to avoid matching decimals like "90.5"
-    text = re.sub(r'([.?:;!])(?!\d)\s*', r'\1<break time="0.4s"/> ', text)
+    text = re.sub(r'([.?:;!])(?!\d)\s*', r'\1<break time="0.5s"/> ', text)
     # add short pauses as well
-    text_with_pauses = re.sub(r'([—])(?!\d)\s*', r'\1<break time="0.1s"/> ', text)
+    text_with_pauses = re.sub(r'([—])(?!\d)\s*', r'\1<break time="0.15s"/> ', text)
     # Add pauses after "Cooper"
     text = re.sub(r'(Cooper)([,.!?]?)\s*', r'\1\2<break time="0.5s"/> ', text)
     
