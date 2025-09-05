@@ -34,12 +34,12 @@ def write_equation(
     with open(eq_path, "w") as f:
         f.write(content)
 
-    new_entry = {"filename": eq_path, "content": content}
+    # new_entry = {"filename": eq_path, "content": content}
 
     return Command(
         update={
             "messages": [ToolMessage(content=f"Equation written to {eq_path}", tool_call_id=tool_call_id)],
-            "equations": new_entry,   # not Path, not nested
+            # "equations": new_entry,   # not Path, not nested
         }
     )
 
